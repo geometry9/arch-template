@@ -1,0 +1,40 @@
+version: '2'
+services:
+  postgres:
+    build: ./db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/polls.sql:/docker-entrypoint-initdb.d/polls.sql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: polls
+
+  frontend:
+    build: ./frontend
+    command: npm run start
+    volumes:
+      - ./frontend:/app
+      - /usr/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  api:
+    build: ./server
+    ports:
+      - "3050:3050"
+    volumes:
+      - ./server:/app
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASS: pass
+      DB_NAME: polls
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:pass@postgres/polls
+      PORT: 3050
